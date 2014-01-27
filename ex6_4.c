@@ -8,14 +8,18 @@
 #include <ctype.h>
 #include <string.h>
 
-struct tnode {
-	/* the tree node: */
+#define MAXWORD 100
+
+/* the tree node: */
+struct tnode 
+{
 	char *word;				/* points to the text */
 	int count;				/* number of occurrences */
-	struct tnode *left;		/* left child */
-	struct tnode *right;	/* right child */
+	struct tnode *left;			/* left child */
+	struct tnode *right;			/* right child */
 };
-#define MAXWORD 100
+
+
 struct tnode *addtree(struct tnode *, char *);
 void treeprint(struct tnode *);
 int getword(char *, int);
