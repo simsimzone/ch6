@@ -20,8 +20,7 @@ static struct nlist *hashtab[HASHSIZE];	/* pointer table */
 
 struct nlist *install(char *name, char *defn);
 void printhash();
-void printelement(struct nlist *);
-struct nlist *undef(char *);
+char *undef(char *);
 
 int main()
 {
@@ -31,8 +30,12 @@ int main()
 	install("Y", "is a letter");	/* Here both Y and sami have the same hash*/
 	printhash();
 
-	printf("after deleting ");
-	printelement(undef("Y"));
+	printf("now deleting ");
+	char *defn = undef("Y");
+
+	printf("%s\n", defn);	
+	free(defn);
+
 	printf("\n\nwe got a new hash table\n");
 	printhash();
 	getchar();
@@ -82,26 +85,39 @@ struct nlist *install(char *name, char *defn)
 	return np;
 }
 
-struct nlist *undef(char *name)
+void freenp(struct nlist *np)
 {
-	struct nlist *np;
+	free((void*) np->name);
+	free((void*) np->defn);
+	free((void*) np);
+}
+
+
+char *undef(char *name)
+{
+	struct nlist *np, *backup = NULL;
+	char* defn;
+	unsigned hashval = hash(name);
+
 	if ((np = lookup(name)) == NULL)
 		return NULL;
-	for (np = hashtab[hash(name)]; np != NULL; np = np->next)
+	for (np = hashtab[hashval]; np != NULL; np = np->next)
 	{
 		if (strcmp(np->name, name) == 0)
 		{
-			hashtab[hash(name)] = np->next;
-			//free((void*) np);
-			return np;
+			if (NULL == backup)	/* first node */
+				hashtab[hashval] = np->next;
+			else				/* mid node */
+				backup->next = np->next;
+			defn = str_dup(np->defn);
+			
+			free(np->name);
+			free(np->defn);
+			free(np);
+
+			return defn;
 		}
-		else if (np->next && str_cmp(np->next->name, name) == 0)
-		{
-			struct nlist *next = np->next;
-			np->next = np->next->next;
-			//free((void*) next);
-			return next;
-		}
+		backup = np;
 	}
 	return NULL;
 }
@@ -121,11 +137,6 @@ void printhash()
 			putchar('\n');
 		}
 	}
-}
-
-void printelement(struct nlist *np)
-{
-	printf("%s = %s", np->name, np->defn);
 }
 
 void str_cpy(char *s, char *t);
