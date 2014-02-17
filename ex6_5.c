@@ -85,14 +85,7 @@ struct nlist *install(char *name, char *defn)
 	return np;
 }
 
-void freenp(struct nlist *np)
-{
-	free((void*) np->name);
-	free((void*) np->defn);
-	free((void*) np);
-}
-
-
+/* deletes the definition and name made by install */
 char *undef(char *name)
 {
 	struct nlist *np, *backup = NULL;
