@@ -20,7 +20,7 @@ static struct nlist *hashtab[HASHSIZE];	/* pointer table */
 
 struct nlist *install(char *name, char *defn);
 void printhash();
-char *undef(char *);
+int undef(char *);
 
 int main()
 {
@@ -30,13 +30,10 @@ int main()
 	install("Y", "is a letter");	/* Here both Y and sami have the same hash*/
 	printhash();
 
-	printf("now deleting ");
-	char *defn = undef("Y");
+	printf("now deleting (Y)");
+	undef("Y");
 
-	printf("%s\n", defn);	
-	free(defn);
-
-	printf("\n\nwe got a new hash table\n");
+	printf("\nwe got a new hash table\n");
 	printhash();
 	getchar();
 	return 0;
@@ -85,15 +82,14 @@ struct nlist *install(char *name, char *defn)
 	return np;
 }
 
-/* deletes the definition and name made by install */
-char *undef(char *name)
+/* deletes the node created by install */
+int undef(char *name)
 {
 	struct nlist *np, *backup = NULL;
-	char* defn;
 	unsigned hashval = hash(name);
 
 	if ((np = lookup(name)) == NULL)
-		return NULL;
+		return 0;
 	for (np = hashtab[hashval]; np != NULL; np = np->next)
 	{
 		if (strcmp(np->name, name) == 0)
@@ -102,17 +98,16 @@ char *undef(char *name)
 				hashtab[hashval] = np->next;
 			else				/* mid node */
 				backup->next = np->next;
-			defn = str_dup(np->defn);
 			
 			free(np->name);
 			free(np->defn);
 			free(np);
 
-			return defn;
+			return 1;
 		}
 		backup = np;
 	}
-	return NULL;
+	return 0;
 }
 
 void printhash()
